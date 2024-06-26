@@ -5,6 +5,7 @@ import errorMiddleware from './middlewares/errorMiddleware';
 
 import TeamRouter from './routes/TeamRoutes';
 import UserRoutes from './routes/UserRoutes';
+import MatchRouter from './routes/MatchRoutes';
 
 class App {
   public app: express.Express;
@@ -19,6 +20,7 @@ class App {
 
     this.app.use('/teams', TeamRouter);
     this.app.use('/login', UserRoutes);
+    this.app.use('/matches', MatchRouter);
 
     // Não remova esse middleware de erro, mas fique a vontade para customizá-lo
     // Mantenha ele sempre como o último middleware a ser chamado
