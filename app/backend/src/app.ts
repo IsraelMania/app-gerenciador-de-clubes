@@ -4,6 +4,7 @@ import 'express-async-errors';
 import errorMiddleware from './middlewares/errorMiddleware';
 
 import TeamRouter from './routes/TeamRoutes';
+import UserRoute from './routes/UserRoutes'
 
 class App {
   public app: express.Express;
