@@ -3,7 +3,7 @@ import 'express-async-errors';
 
 import errorMiddleware from './middlewares/errorMiddleware';
 
-import TeamRouter from './routes/TeamRoutes'
+import TeamRouter from './routes/TeamRoutes';
 
 class App {
   public app: express.Express;
