@@ -1,6 +1,7 @@
 import Team from '../database/models/TeamModel';
 import Match from '../database/models/MatchModel';
 import TeamService from './TeamService';
+import { MatchType } from '../Types/MatchType';
 
 type DefaultResponse = {
   num?: number;
@@ -49,7 +50,7 @@ export default class MatchService {
           attributes: ['teamName'],
         },
       ],
-    });
+    }) as unknown as Promise<MatchType[]>;
   }
 
   static async getMatches(inProgress: string | undefined) {
