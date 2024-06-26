@@ -3,9 +3,9 @@ import { MatchType } from '../Types/MatchType';
 import { TeamType } from '../Types/TeamType';
 
 export default class LeaderbordService {
-    static async getLeaderboard() {
-      const generalMatches = await MatchService.getMatchesNotInProgress();
-      const matches = LeaderbordService.makeLeaderboard(generalMatches);
+  static async getLeaderboard() {
+    const generalMatches = await MatchService.getMatchesNotInProgress();
+    const matches = LeaderbordService.makeLeaderboard(generalMatches);
     const leaderboard = await LeaderbordService.updateLeaderboard(await matches);
     const sortedLeaderboard = await LeaderbordService.sortLeaderboard(leaderboard);
     return sortedLeaderboard;
