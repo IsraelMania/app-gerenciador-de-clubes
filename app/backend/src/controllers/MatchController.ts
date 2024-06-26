@@ -39,12 +39,12 @@ export default class MatchController {
       const response = await MatchService
         .createMatch(Number(homeTeamId), Number(awayTeamId), homeTeamGoals, awayTeamGoals);
 
-        if (response.num) {
+      if (response.num) {
         return res.status(response.num).json({ message: response.message });
-        }
+      }
 
-        return res.status(201).json(response.result);
-  } catch (error) {
+      return res.status(201).json(response.result);
+    } catch (error) {
       return res.status(500).json({ error: 'Failed' });
     }
   }
