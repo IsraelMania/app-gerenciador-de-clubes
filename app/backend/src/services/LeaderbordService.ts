@@ -1,4 +1,4 @@
-import MatchService from "./MatchService";
+import MatchService from './MatchService';
 
 export default class LeaderbordService {
   static async getLeaderboard() {

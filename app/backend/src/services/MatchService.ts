@@ -3,10 +3,10 @@ import Match from '../database/models/MatchModel';
 import TeamService from './TeamService';
 
 type DefaultResponse = {
-    num?: number;
-    message?: string;
-    result?: Match;
-  };
+  num?: number;
+  message?: string;
+  result?: Match;
+};
 
 export default class MatchService {
   public static equalTeamsMessage = 'It is not possible to create a match with two equal teams';
@@ -56,7 +56,7 @@ export default class MatchService {
     if (inProgress === 'true') return this.getMatchesInProgress();
 
     if (inProgress === 'false') return this.getMatchesNotInProgress();
-    
+
     return Match.findAll({
       include: [
         {
