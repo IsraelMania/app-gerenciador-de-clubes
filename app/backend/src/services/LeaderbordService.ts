@@ -60,14 +60,12 @@ export default class LeaderbordService {
 
     matches.forEach((match) => {
       const { homeTeam } = match;
-
       if (!LeaderbordService.checkTeamExistence(homeTeam.teamName, leaderboard)) {
         LeaderbordService.insertHomeTeam(leaderboard, match, homeTeam.teamName);
       } else {
         leaderboard = LeaderbordService
           .updateExistingTeam(leaderboard, match, homeTeam.teamName, true);
       }
-
     });
 
     return leaderboard;
