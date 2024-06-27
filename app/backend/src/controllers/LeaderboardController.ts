@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import LeaderbordService from 'src/services/LeaderbordService.1';
+import LeaderbordService from '../services/LeaderbordService';
 
 export default class LeaderboardController {
   static async getHomeLeaderboard(req: Request, res: Response) {
