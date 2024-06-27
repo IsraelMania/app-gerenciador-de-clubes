@@ -7,6 +7,6 @@ export type TeamType = {
   totalLosses: number;
   goalsFavor: number;
   goalsOwn: number;
-  goasBalance?: number;
+  goalsBalance?: number;
   efficiency?: number;
 };

@@ -3,6 +3,22 @@ import { MatchType } from '../Types/MatchType';
 import { TeamType } from '../Types/TeamType';
 
 export default class LeaderbordService {
+    static async getHomeLeaderboard() {
+        const generalMatches = await MatchService.getMatchesNotInProgress();
+        const matches = LeaderbordService.makeHomeLeaderboard(generalMatches);
+        const leaderboard = await LeaderbordService.updateLeaderboard(await matches);
+        const sortedLeaderboard = await LeaderbordService.sortLeaderboard(leaderboard);
+        return sortedLeaderboard;
+      }
+    
+      static async getAwayLeaderboard() {
+        const generalMatches = await MatchService.getMatchesNotInProgress();
+        const matches = LeaderbordService.makeAwayLeaderboard(generalMatches);
+        const leaderboard = await LeaderbordService.updateLeaderboard(await matches);
+        const sortedLeaderboard = await LeaderbordService.sortLeaderboard(leaderboard);
+        return sortedLeaderboard;
+      }
+
   static async getLeaderboard() {
     const generalMatches = await MatchService.getMatchesNotInProgress();
     const matches = LeaderbordService.makeLeaderboard(generalMatches);
@@ -15,7 +31,7 @@ export default class LeaderbordService {
     const newLeaderboard = [...leaderboard];
     leaderboard.forEach((team) => {
       const teamIndex = newLeaderboard.findIndex((t) => t.name === team.name);
-      newLeaderboard[teamIndex].goasBalance = team.goalsFavor - team.goalsOwn;
+      newLeaderboard[teamIndex].goalsBalance = team.goalsFavor - team.goalsOwn;
       newLeaderboard[teamIndex]
         .efficiency = Number(((team.totalPoints / (team.totalGames * 3)) * 100).toFixed(2));
     });
@@ -26,19 +42,52 @@ export default class LeaderbordService {
   static async sortLeaderboard(leaderboard: TeamType[]) {
     const newLeaderboard = [...leaderboard];
     newLeaderboard.sort((a, b) => {
-      if (a.totalVictories !== b.totalVictories) {
-        return b.totalVictories - a.totalVictories;
+      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      if (b.totalVictories !== a.totalVictories) return b.totalVictories - a.totalVictories;
+      if (b.goalsBalance !== a.goalsBalance
+        && b.goalsBalance !== undefined && a.goalsBalance !== undefined) {
+        return b.goalsBalance - a.goalsBalance;
       }
-
-      if (a.goasBalance !== undefined
-        && b.goasBalance !== undefined && a.goasBalance !== b.goasBalance) {
-        return b.goasBalance - a.goasBalance;
-      }
-
+      
       return b.goalsFavor - a.goalsFavor;
     });
 
     return newLeaderboard;
+  }
+
+  static async makeHomeLeaderboard(matches: MatchType[]): Promise<TeamType[]> {
+    let leaderboard: TeamType[] = [];
+
+    matches.forEach((match) => {
+      const { homeTeam } = match;
+
+      if (!LeaderbordService.checkTeamExistence(homeTeam.teamName, leaderboard)) {
+        LeaderbordService.insertHomeTeam(leaderboard, match, homeTeam.teamName);
+      } else {
+        leaderboard = LeaderbordService
+          .updateExistingTeam(leaderboard, match, homeTeam.teamName, true);
+      }
+
+    });
+
+    return leaderboard;
+  }
+
+  static async makeAwayLeaderboard(matches: MatchType[]): Promise<TeamType[]> {
+    let leaderboard: TeamType[] = [];
+
+    matches.forEach((match) => {
+      const { awayTeam } = match;
+
+      if (!LeaderbordService.checkTeamExistence(awayTeam.teamName, leaderboard)) {
+        LeaderbordService.insertAwayTeam(leaderboard, match, awayTeam.teamName);
+      } else {
+        leaderboard = LeaderbordService
+          .updateExistingTeam(leaderboard, match, awayTeam.teamName, false);
+      }
+    });
+
+    return leaderboard;
   }
 
   static async makeLeaderboard(matches: MatchType[]): Promise<TeamType[]> {
@@ -90,13 +139,13 @@ export default class LeaderbordService {
   static insertHomeTeam(leaderboard: TeamType[], match: MatchType, teamName: string) {
     const { homeTeamGoals, awayTeamGoals } = match;
     const teamData: TeamType = { name: teamName,
-      totalGames: 1,
       totalPoints: 0,
-      goalsFavor: 0,
-      goalsOwn: 0,
+      totalGames: 1,
+      totalVictories: 0,
       totalDraws: 0,
       totalLosses: 0,
-      totalVictories: 0 };
+      goalsFavor: 0,
+      goalsOwn: 0 };
     teamData.totalVictories = homeTeamGoals > awayTeamGoals ? 1 : 0;
     teamData.totalDraws = homeTeamGoals === awayTeamGoals ? 1 : 0;
     teamData.totalLosses = homeTeamGoals < awayTeamGoals ? 1 : 0;
@@ -122,7 +171,7 @@ export default class LeaderbordService {
     teamData.totalLosses = awayTeamGoals < homeTeamGoals ? 1 : 0;
     teamData.goalsFavor = awayTeamGoals;
     teamData.goalsOwn = homeTeamGoals;
-    teamData.totalPoints = LeaderbordService.updateTotalPoints(homeTeamGoals, awayTeamGoals, 0);
+    teamData.totalPoints = LeaderbordService.updateTotalPoints(awayTeamGoals, homeTeamGoals, 0);
 
     leaderboard.push(teamData);
   }
@@ -140,7 +189,7 @@ export default class LeaderbordService {
     newLeaderboard[teamIndex].totalLosses += hTGoals < aTGoals ? 1 : 0;
     newLeaderboard[teamIndex].goalsFavor += hTGoals;
     newLeaderboard[teamIndex].goalsOwn += aTGoals;
-    newLeaderboard[teamIndex].totalPoints += LeaderbordService
+    newLeaderboard[teamIndex].totalPoints = LeaderbordService
       .updateTotalPoints(hTGoals, aTGoals, newLeaderboard[teamIndex].totalPoints);
 
     return newLeaderboard;
@@ -159,8 +208,8 @@ export default class LeaderbordService {
     newLeaderboard[teamIndex].totalLosses += aTGoals < hTGoals ? 1 : 0;
     newLeaderboard[teamIndex].goalsFavor += aTGoals;
     newLeaderboard[teamIndex].goalsOwn += hTGoals;
-    newLeaderboard[teamIndex].totalPoints += LeaderbordService
-      .updateTotalPoints(hTGoals, aTGoals, newLeaderboard[teamIndex].totalPoints);
+    newLeaderboard[teamIndex].totalPoints = LeaderbordService
+      .updateTotalPoints(aTGoals, hTGoals, newLeaderboard[teamIndex].totalPoints);
 
     return newLeaderboard;
   }
@@ -172,9 +221,9 @@ export default class LeaderbordService {
   ) {
     let updatedPoints = totalPoints;
     if (homeTeamGoals > awayTeamGoals) {
-      updatedPoints = 3;
+      updatedPoints += 3;
     } else if (homeTeamGoals === awayTeamGoals) {
-      updatedPoints = 1;
+      updatedPoints += 1;
     }
 
     return updatedPoints;
